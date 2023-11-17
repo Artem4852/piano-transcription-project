@@ -6,19 +6,20 @@ import random
 octaves = [3, 4, 5, 6]
 notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 # notes = ['C', 'C', 'C#', 'D', 'D', 'D#', 'E', 'E', 'F', 'F', 'F#', 'G',  'G', 'G#', 'A',  'A', 'A#', 'B', 'B']
-length = [0, 0.25, 0.5, 1, 2, 4]
-restlength = [0, 0, 0.25, 0.5, 1, 2, 4]
+standardLengths = [0.25, 0.5, 1, 2, 4]
+lengths = [[0.25], [0.5], [0.75], [1], [1, 0.25], [1.5], [1.5, 0.25], [2], [2, 0.25], [2, 0.5], [2, 0.75], [3], [3, 0.25], [3, 0.5], [3, 0.75], [4]]
+restlengths = [0, 0, 0.25, 0.5, 1, 2, 4]
 
 allPitches = [note+str(octave) for octave in octaves for note in notes]
 
 s = stream.Stream()
 s.append(music21.note.Rest(length=4))
-for noteBefore in allPitches:
-  for noteAfter in allPitches:
-    n1 = music21.note.Note(noteBefore, quarterLength=2.0)
-    n2 = music21.note.Note(noteAfter, quarterLength=2.0)
-    s.append(n1)
-    s.append(n2)
+# for noteBefore in allPitches:
+#   for noteAfter in allPitches:
+#     n1 = music21.note.Note(noteBefore, quarterLength=2.0)
+#     n2 = music21.note.Note(noteAfter, quarterLength=2.0)
+#     s.append(n1)
+#     s.append(n2)
 
 # n = 0
 # for _ in range(124):
@@ -36,6 +37,15 @@ for noteBefore in allPitches:
 #   if restdur == 0: continue
 #   s.append(music21.note.Rest(restdur))
 
-s.write('musicxml', 'media/training/allPitchesCombinationsHalfs.mxl')
+# generating training file for length model
+for lengthGroup in lengths:
+  for note in allPitches:
+    n = music21.note.Note(note)
+    n.duration.quarterLength = lengthGroup[-1]
+    if len(lengthGroup) != 1:
+      additional = music21.note.Note(note, quarterLength=lengthGroup[0])
+      additional.tie = music21.tie.Tie('start')
+      s.append(additional)
+    s.append(n)
 
-# 124
+s.write('musicxml', 'media/training/allLengths.mxl')

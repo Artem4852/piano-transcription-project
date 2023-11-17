@@ -38,6 +38,8 @@ def getFeatures(tempFolder):
     spectrogram = librosa.feature.melspectrogram(y=y, sr=sr)
     logSpectrogram = librosa.amplitude_to_db(spectrogram, ref=np.max)
 
+    rms = librosa.feature.rms(y=y)
+
     frequencies, magnitudes = librosa.piptrack(y=y, sr=sr)
     estimatedPitch = frequencies[np.argmax(magnitudes, axis=0)]
 
@@ -48,10 +50,12 @@ def getFeatures(tempFolder):
       "spectrogram": logSpectrogram,
       "spectrogramLength": logSpectrogram.shape[1],
       "harmonic": harmonic,
-      "harmonicMax": np.max(harmonic)
+      "harmonicMax": np.max(harmonic),
+      "rms": rms,
+      "amplitude": y,
     })
 
-  os.system(f"rm -rf {tempFolder}")
+  # os.system(f"rm -rf {tempFolder}")
   return notes
   
 def extractFeatures(filename, tempFolder="notesTemp"):
@@ -63,6 +67,7 @@ def extractFeatures(filename, tempFolder="notesTemp"):
   return notes, onsetTimes
 
 if __name__ == "__main__":
-  notes, onsetTimes = extractFeatures("media/testing/lengthtest1.wav")
-  print(notes)
-  print(onsetTimes)
+  notes, onsetTimes = extractFeatures("media/testing/resttest1.wav")
+  for n, note in enumerate(notes):
+    df = pd.DataFrame(note["spectrogram"])
+    df.to_csv(f"spects/spect_{n}.csv", index=False)

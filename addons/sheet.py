@@ -13,12 +13,16 @@ def labelData(filename):
 
   for note in score.flatten().notesAndRests:
     if note.isRest:
+      # print("rest")
       length = float(note.quarterLength)
       scoreInfo.append((0, None, length))
       continue
+    if note.tie and note.tie.type != "start":
+      scoreInfo[-1][-1] += float(note.quarterLength)
+      continue
     pitch = note.pitch.nameWithOctave
     length = float(note.quarterLength)
-    scoreInfo.append((1, pitch, length))
+    scoreInfo.append([1, pitch, length])
 
   pitchLabels, lengthLabels, restsLabels = [], [], []
   for n, (_type, pitch, length) in enumerate(scoreInfo):
@@ -27,14 +31,16 @@ def labelData(filename):
     note = pitch[0]
 
     totalRestsLength = 0
-    for piece in scoreInfo[n:]:
+    for piece in scoreInfo[n+1:]:
+      # print(piece)
       if piece[0] == 0:
         totalRestsLength += piece[2]
       else:
         break
 
-    lengthLabel = str(key["length"].index(length) if length in key["length"] else key["length"].index(length/1.5))
-    lengthLabel += "0" if length in key["length"] else "1"
+    # lengthLabel = str(key["length"].index(length) if length in key["length"] else key["length"].index(length/1.5))
+    # lengthLabel += "0" if length in key["length"] else "1"
+    lengthLabel = length*4
 
     pitchLabels.append(int(f"{octave}{key['pitch'].index(note)}{1 if '#' in pitch else 0}"))
     lengthLabels.append(int(lengthLabel))
@@ -54,12 +60,13 @@ def extractData(pitchLabels, lengthLabels, restsLabels, filename):
 
     lengthLabel = (str(lengthLabels[n]) if lengthLabels[n] >= 10 else "0" + str(lengthLabels[n])) if str(type(lengthLabels)) != "<class 'NoneType'>" else 1
     if str(type(lengthLabels)) != "<class 'NoneType'>":
-      length = key["length"][int(lengthLabel[0])]
-      length *= 1.5 if int(lengthLabel[1]) else 1
+      # length = key["length"][int(lengthLabel[0])]
+      # length *= 1.5 if int(lengthLabel[1]) else 1
+      length = lengthLabels[n]/4
     else: length = 1.0
-    restLength = restsLabels[n]/4 if restsLabels else 0
+    restLength = restsLabels[n]/4 if str(type(lengthLabels)) != "<class 'NoneType'>" else 0
 
-    newNote = music21.note.Note(f"{note}{sharp}{octave}", quarterLength=length)
+    newNote = music21.note.Note(f"{note}{sharp}{octave}", quarterLength=length-restLength)
     outputStream.append(newNote)
 
     if restLength != 0: outputStream.append(music21.note.Rest(quarterLength=restLength))

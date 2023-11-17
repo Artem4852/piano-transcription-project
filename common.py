@@ -1,8 +1,13 @@
 import numpy as np
+import pandas as pd
 import os, joblib, pickle
 from sklearn.ensemble import RandomForestClassifier
 from addons.features import extractFeatures
 from addons.sheet import labelData, extractData, key
+
+longestSpectrogram = 300
+longestHarmonic = 120000
+longestAmpl = 200000
 
 def saveData(data, filename):
   os.makedirs("models/data", exist_ok=True)
@@ -26,6 +31,7 @@ def getTrainingData(filename, mode=0, training=True, tempFolder="notesTemp"):
   X, yp, yl, yr = [], [], [], []
   pitchLabels, lengthLabels, restsLabels = labelData(f"media/{'training' if training else 'testing'}/{filename}.mxl")
   notes, _ = extractFeatures(f"media/{'training' if training else 'testing'}/{filename}.wav", tempFolder)
+  print(len(notes), len(pitchLabels))
   for n, note in enumerate(notes):
     X.append(note)
     yp.append(pitchLabels[n])
@@ -34,16 +40,48 @@ def getTrainingData(filename, mode=0, training=True, tempFolder="notesTemp"):
   
   return X, yp, yl, yr
 
+def padSpectrogram(spectrogram):
+  cols = longestSpectrogram - len(spectrogram[0])
+  padWidthSpect = ((0, 0), (0, cols))
+  paddedSpect = np.pad(spectrogram, padWidthSpect, mode='constant', constant_values=-100)
+  paddedSpect = paddedSpect.flatten().tolist()
+  return paddedSpect
+
+def padHarmonic(harmonic):
+  cols = longestHarmonic - len(harmonic)
+  padWidthHarm = ((0, cols))
+  paddedHarm = np.pad(harmonic, padWidthHarm, mode='constant', constant_values=-100).tolist()
+  return paddedHarm
+
+def padRms(rms, n=None):
+  # pd.DataFrame(rms).T.to_csv(f"rms/{n}.csv", index=False)
+  cols = longestSpectrogram - len(rms[0])
+  if n: print(f"\033[1APadding note {n} - {cols}")
+  padWidthRms = ((0, 0), (0, cols))
+  paddedRms = np.pad(rms, padWidthRms, mode='constant', constant_values=-100).tolist()
+  return paddedRms[0]
+
+def padAmplitude(amplitude, n=None):
+  cols = longestAmpl - len(amplitude)
+  # print(f"\033[1APadding note {n} - {cols}")
+  padWidthAmpl = ((0, cols))
+  paddedAmpl = np.pad(amplitude, padWidthAmpl, mode='constant', constant_values=-100).tolist()
+  return paddedAmpl
+
 def trainCLF(X, y, save=True, filename="classifier"):
   X = np.array(X); y = np.array(y)
-  classifier = RandomForestClassifier()
+  classifier = RandomForestClassifier(verbose=1)
   classifier.fit(X, y)
   if save: saveModel(classifier, filename)
   return classifier
 
-def fixLengthPredictions(predictions):
+def fixLengthPredictions(predictions, rests):
   key = [0.25, 0.5, 1.0, 2.0, 4.0]
-  lengthPredData = [key[int(str(x if x not in [0, 1] else "0"+str(x))[:-1])] * (1.5 if int(str(x)[-1]) else 1) for x in predictions]
+  # lengthPredData = [key[int(str(x if x not in [0, 1] else "0"+str(x))[:-1])] * (1.5 if int(str(x)[-1]) else 1) for x in predictions]
+  lengthPredData = [x/4 for x in predictions]
+  rests = rests/4
+  print(lengthPredData)
+  print(rests)
 
   total = 0
   perfectuntil = 0
@@ -51,7 +89,7 @@ def fixLengthPredictions(predictions):
   for n, note in enumerate(lengthPredData):
     total += note
     if total == 4.0: total, perfectuntil, measure = 0, n, measure+1
-    elif total > 4: 
+    elif total > 4 and total - rests[n] > 4: 
       if n == len(lengthPredData)-1: break
       print(f"Likely an error begins before/at note {n} on measure {measure} with length {note}. Total is {total}")
       for j, note in enumerate(lengthPredData[perfectuntil:n]):
@@ -60,5 +98,7 @@ def fixLengthPredictions(predictions):
         print(f"Error caused by note {j} on measure {measure} with lengths {note}\nThe index of the note in the pred data is {j+perfectuntil}")
         lengthPredData[j+perfectuntil] = note/1.5
         total, perfectuntil, measure = 0, n, measure+1
-  
-  return [int((str(key.index(pred))+"0") if pred in key else (str(key.index(pred/1.5)) + "1")) for pred in lengthPredData]
+    elif total > 4 and total - rests[n] < 4: total -= 4; perfectuntil = n; measure += 1
+    print(n, total, note, rests[n])
+
+  return [int((str(key.index(pred-rests[n]))+"0") if pred-rests[n] in key else (str(key.index((pred-rests[n])/1.5)) + "1")) for n, pred in enumerate(lengthPredData)]

@@ -11,4 +11,4 @@ for n, _file in enumerate(trainingFiles):
   for note in localX:
     X.append([note["pitch"], np.max(note["harmonic"]), len(note["harmonic"].flatten().tolist()), note["spectrogramLength"]])
 
-trainCLF(X, y, True, "lengthClassifier")
+trainCLF(X, y, True, "lengthClassifierNew")
