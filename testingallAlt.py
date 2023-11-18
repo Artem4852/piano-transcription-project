@@ -28,7 +28,7 @@ for i in range(4):
   print(list(predictionsLength))
   print(list(predictionsRests))
   print(f"Accuracy score pitch: {round(accuracy_score(pitchY, predictionsPitch)*100, 2)}%")
-  # print(f"Accuracy score length: {round(accuracy_score(lengthY[:-1], predictionsLengthForAcc)*100, 2)}%")
+  print(f"Accuracy score length: {round(accuracy_score(lengthY[:-1], predictionsLength[:-1]-predictionsRests[:-1])*100, 2)}%")
   print(f"Accuracy score rests: {round(accuracy_score(restsY, predictionsRests)*100, 2)}%")
   print()
 

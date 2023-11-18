@@ -55,7 +55,7 @@ def getFeatures(tempFolder):
       "amplitude": y,
     })
 
-  # os.system(f"rm -rf {tempFolder}")
+  os.system(f"rm -rf {tempFolder}")
   return notes
   
 def extractFeatures(filename, tempFolder="notesTemp"):
