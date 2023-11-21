@@ -7,7 +7,8 @@ octaves = [3, 4, 5, 6]
 notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 # notes = ['C', 'C', 'C#', 'D', 'D', 'D#', 'E', 'E', 'F', 'F', 'F#', 'G',  'G', 'G#', 'A',  'A', 'A#', 'B', 'B']
 standardLengths = [0.25, 0.5, 1, 2, 4]
-lengths = [[0.25], [0.5], [0.75], [1], [1, 0.25], [1.5], [1.5, 0.25], [2], [2, 0.25], [2, 0.5], [2, 0.75], [3], [3, 0.25], [3, 0.5], [3, 0.75], [4]]
+lengths = [[1.5], [1.5, 0.25], [2], [2, 0.25], [2, 0.5], [2, 0.75], [3]]
+# lengths = [[0.25], [0.5], [0.75], [1], [1, 0.25], [1.5], [1.5, 0.25], [2], [2, 0.25], [2, 0.5], [2, 0.75], [3], [3, 0.25], [3, 0.5], [3, 0.75], [4]]
 restlengths = [0, 0, 0.25, 0.5, 1, 2, 4]
 
 allPitches = [note+str(octave) for octave in octaves for note in notes]
@@ -41,11 +42,11 @@ s.append(music21.note.Rest(length=4))
 for lengthGroup in lengths:
   for note in allPitches:
     n = music21.note.Note(note)
-    n.duration.quarterLength = lengthGroup[-1]
+    n.duration.quarterLength = 4+lengthGroup[-1]
     if len(lengthGroup) != 1:
       additional = music21.note.Note(note, quarterLength=lengthGroup[0])
       additional.tie = music21.tie.Tie('start')
       s.append(additional)
     s.append(n)
 
-s.write('musicxml', 'media/training/allLengths.mxl')
+s.write('musicxml', 'media/training/allLengthsAdditional.mxl')

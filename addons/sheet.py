@@ -58,17 +58,13 @@ def extractData(pitchLabels, lengthLabels, restsLabels, filename):
     note = key['pitch'][int(str(pitchLabel)[1])]
     sharp = "#" if int(str(pitchLabel)[2]) else ""
 
-    lengthLabel = (str(lengthLabels[n]) if lengthLabels[n] >= 10 else "0" + str(lengthLabels[n])) if str(type(lengthLabels)) != "<class 'NoneType'>" else 1
-    if str(type(lengthLabels)) != "<class 'NoneType'>":
-      # length = key["length"][int(lengthLabel[0])]
-      # length *= 1.5 if int(lengthLabel[1]) else 1
-      length = lengthLabels[n]/4
+    if str(type(lengthLabels)) != "<class 'NoneType'>": length = lengthLabels[n]/4
     else: length = 1.0
     restLength = restsLabels[n]/4 if str(type(lengthLabels)) != "<class 'NoneType'>" else 0
 
-    newNote = music21.note.Note(f"{note}{sharp}{octave}", quarterLength=length-restLength)
+    newNote = music21.note.Note(f"{note}{sharp}{octave}", quarterLength=length-restLength if length-restLength>0 else length)
     outputStream.append(newNote)
 
-    if restLength != 0: outputStream.append(music21.note.Rest(quarterLength=restLength))
+    if restLength != 0 and length-restLength>0: outputStream.append(music21.note.Rest(quarterLength=restLength))
   
   outputStream.write("mxl", fp=filename)

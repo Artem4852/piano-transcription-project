@@ -1,6 +1,6 @@
 from common import getTrainingFiles, getTrainingData, trainCLF, np
 
-trainingFiles = getTrainingFiles(True, True)
+trainingFiles = getTrainingFiles(True, True, alllengths=True)
 trainingFiles.sort()
 
 X, y = [], []
@@ -9,6 +9,10 @@ for n, _file in enumerate(trainingFiles):
   localX, _, localY, _ = getTrainingData(_file, tempFolder="lengthTemp")
   y += localY
   for note in localX:
-    X.append([note["pitch"], np.max(note["harmonic"]), len(note["harmonic"].flatten().tolist()), note["spectrogramLength"]])
+    X.append([note["pitch"], len(note["harmonic"].flatten().tolist()), note["spectrogramLength"], note["spectrogramLength"], note["spectrogramLength"], note["spectrogramLength"]])
 
-trainCLF(X, y, True, "lengthClassifierNew")
+model = trainCLF(X, y, True, "lengthClassifierNewNew")
+
+# start of training   16 08 57
+# end of training     16 14 42
+# total:              00 05 45

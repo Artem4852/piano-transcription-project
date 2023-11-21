@@ -1,4 +1,4 @@
-from common import getTrainingFiles, getTrainingData, trainCLF, padRms, padAmplitude, np
+from common import getTrainingFiles, getTrainingData, trainCLF, padRms, np
 import pickle
 
 loadData = False
@@ -15,12 +15,12 @@ for n, _file in enumerate(trainingFiles):
   rawX += localX
   y += localY
   for note in localX:
-    X.append([note["pitch"], note["rms"]])
+    X.append([note["pitch"], note["harmonicMax"], np.mean(note["harmonic"]), note["rms"]])
     # X.append([note["pitch"], note["rms"], note["amplitude"]])
 
 if loadData:
   rawX = pickle.load(open("models/data/restsX.pkl", "rb"))
-  X = [[note["pitch"], note["rms"]] for note in rawX]
+  X = [[note["pitch"], note["harmonicMax"], np.mean(note["harmonic"]), note["rms"]] for note in rawX]
   # X = [[note["pitch"], note["rms"], note["amplitude"]] for note in rawX]
   y = pickle.load(open("models/data/restsY.pkl", "rb"))
 else:

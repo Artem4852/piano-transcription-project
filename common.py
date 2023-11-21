@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import os, joblib, pickle
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
 from addons.features import extractFeatures
 from addons.sheet import labelData, extractData, key
 
@@ -24,18 +25,17 @@ def saveModel(model, filename):
 def loadModel(filename):
   return joblib.load(f"models/{filename}.pkl")
 
-def getTrainingFiles(dotted=False, allpitches=False, spaces=False, combinations=False):
-  return [f.split('.')[0] for f in os.listdir("media/training") if "wav" in f and (not "allpitches2" in f or allpitches) and (not "dotted" in f.lower() or dotted) and (not "spaces" in f.lower() or spaces) and (not "combinations" in f.lower() or combinations)]
+def getTrainingFiles(dotted=False, allpitches=False, spaces=False, combinations=False, alllengths=False):
+  return [f.split('.')[0] for f in os.listdir("media/training") if "wav" in f and (not "allpitches2" in f or allpitches) and (not "dotted" in f.lower() or dotted) and (not "spaces" in f.lower() or spaces) and (not "combinations" in f.lower() or combinations) and (not "alllengths" in f.lower() or alllengths)]
 
 def getTrainingData(filename, mode=0, training=True, tempFolder="notesTemp"):
   X, yp, yl, yr = [], [], [], []
   pitchLabels, lengthLabels, restsLabels = labelData(f"media/{'training' if training else 'testing'}/{filename}.mxl")
   notes, _ = extractFeatures(f"media/{'training' if training else 'testing'}/{filename}.wav", tempFolder)
-  print(len(notes), len(pitchLabels))
   for n, note in enumerate(notes):
     X.append(note)
     yp.append(pitchLabels[n])
-    yl.append(lengthLabels[n])
+    yl.append(np.array(lengthLabels[n]) + (np.array(restsLabels[n]) if not training else 0))
     yr.append(restsLabels[n])
   
   return X, yp, yl, yr
@@ -70,10 +70,10 @@ def padAmplitude(amplitude, n=None):
 
 def trainCLF(X, y, save=True, filename="classifier"):
   X = np.array(X); y = np.array(y)
-  classifier = RandomForestClassifier(verbose=1)
-  classifier.fit(X, y)
-  if save: saveModel(classifier, filename)
-  return classifier
+  model = RandomForestClassifier()
+  model.fit(X, y)
+  if save: saveModel(model, filename)
+  return model
 
 def fixLengthPredictions(predictions, rests):
   key = [0.25, 0.5, 1.0, 2.0, 4.0]
