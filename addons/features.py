@@ -2,6 +2,7 @@ import librosa, os
 import numpy as np
 import pandas as pd
 from pydub import AudioSegment
+from termcolor import colored
 
 MARGINR = 25
 MARGINL = 35
@@ -24,15 +25,17 @@ def separateNotes(filename, tempFolder):
 
   return onsetTimes
 
-def getFeatures(tempFolder):
+def getFeatures(tempFolder, lang):
   notes = []
 
   noteFiles = os.listdir(tempFolder)
   noteFiles.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
 
+  print(colored("    " + str(len(noteFiles)) + (" notes detected" if lang == 'eng' else ' нот розпізнано' if lang == 'ukr' else ' нот распознано'), "cyan"))
+
   print()
   for n, noteFile in enumerate(noteFiles):
-    print(f"\033[1AProcessing {noteFile} ({n+1}/{len(noteFiles)})")
+    print(colored(f"\033[1A    {'Processing' if lang == 'eng' else 'Опрацювання' if lang == 'ukr' else 'Загрузка'} {noteFile} ({n+1}/{len(noteFiles)})", "cyan"))
     y, sr = librosa.load(f"{tempFolder}/{noteFile}")
 
     spectrogram = librosa.feature.melspectrogram(y=y, sr=sr)
@@ -58,12 +61,11 @@ def getFeatures(tempFolder):
   os.system(f"rm -rf {tempFolder}")
   return notes
   
-def extractFeatures(filename, tempFolder="notesTemp"):
-  print("Separating notes")
+def extractFeatures(filename, tempFolder="notesTemp", lang="eng"):
+  print(colored("    " + ("Separating notes" if lang == "eng" else "Розділення нот" if lang == "ukr" else "Разделение нот"), "cyan"))
   onsetTimes = separateNotes(filename, tempFolder)
-  print("Extracting features")
-  notes = getFeatures(tempFolder)
-  print("Done\n")
+  print(colored("    " + ("Analyzing notes" if lang == "eng" else "Аналіз нот" if lang == "ukr" else "Анализ нот"), "cyan"))
+  notes = getFeatures(tempFolder, lang=lang)
   return notes, onsetTimes
 
 if __name__ == "__main__":

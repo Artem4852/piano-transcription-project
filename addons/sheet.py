@@ -48,7 +48,7 @@ def labelData(filename):
   
   return pitchLabels, lengthLabels, restsLabels
 
-def extractData(pitchLabels, lengthLabels, restsLabels, filename):
+def extractData(pitchLabels, lengthLabels, restsLabels, filename, exportFormat=1):
   outputStream = stream.Stream()
 
   outputStream.append(music21.note.Rest(quarterLength=4.0))
@@ -66,5 +66,9 @@ def extractData(pitchLabels, lengthLabels, restsLabels, filename):
     outputStream.append(newNote)
 
     if restLength != 0 and length-restLength>0: outputStream.append(music21.note.Rest(quarterLength=restLength))
+
+  exportFormat = "mxl" if exportFormat == 1 else "midi"
   
-  outputStream.write("mxl", fp=filename)
+  print(exportFormat, filename)
+
+  outputStream.write(exportFormat, fp=filename+"."+exportFormat)

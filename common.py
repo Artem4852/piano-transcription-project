@@ -28,15 +28,16 @@ def loadModel(filename):
 def getTrainingFiles(dotted=False, allpitches=False, spaces=False, combinations=False, alllengths=False):
   return [f.split('.')[0] for f in os.listdir("media/training") if "wav" in f and (not "allpitches2" in f or allpitches) and (not "dotted" in f.lower() or dotted) and (not "spaces" in f.lower() or spaces) and (not "combinations" in f.lower() or combinations) and (not "alllengths" in f.lower() or alllengths)]
 
-def getTrainingData(filename, mode=0, training=True, tempFolder="notesTemp"):
+def getTrainingData(filename, mode=0, training=True, tempFolder="notesTemp", predicting=False, lang="eng"):
   X, yp, yl, yr = [], [], [], []
-  pitchLabels, lengthLabels, restsLabels = labelData(f"media/{'training' if training else 'testing'}/{filename}.mxl")
-  notes, _ = extractFeatures(f"media/{'training' if training else 'testing'}/{filename}.wav", tempFolder)
+  if not predicting: pitchLabels, lengthLabels, restsLabels = labelData(f"media/{'training' if training else 'testing'}/{filename}.mxl")
+  notes, _ = extractFeatures(f"media/{'training' if training else 'testing'}/{filename}.wav" if not predicting else filename+".wav", tempFolder, lang=lang)
   for n, note in enumerate(notes):
     X.append(note)
-    yp.append(pitchLabels[n])
-    yl.append(np.array(lengthLabels[n]) + (np.array(restsLabels[n]) if not training else 0))
-    yr.append(restsLabels[n])
+    if not predicting:
+      yp.append(pitchLabels[n])
+      yl.append(np.array(lengthLabels[n]) + (np.array(restsLabels[n]) if not training else 0))
+      yr.append(restsLabels[n])
   
   return X, yp, yl, yr
 
@@ -102,3 +103,13 @@ def fixLengthPredictions(predictions, rests):
     print(n, total, note, rests[n])
 
   return [int((str(key.index(pred-rests[n]))+"0") if pred-rests[n] in key else (str(key.index((pred-rests[n])/1.5)) + "1")) for n, pred in enumerate(lengthPredData)]
+
+def convertNotes(predictionsPitch, predictionsLength, predictionsRests):
+  notes = []
+  for n, pred in enumerate(predictionsPitch):
+    pitch = f"{key['pitch'][int(str(pred)[1])]}{'#' if int(str(pred)[2]) else ''}{str(pred)[0]}"
+    length = predictionsLength[n]-predictionsRests[n]
+    if length <= 0: length = predictionsLength[n]
+    notes.append(f"{pitch} {length}")
+    if predictionsRests[n] != 0 and predictionsLength[n]-predictionsRests[n] > 0: notes.append(f"Rest {predictionsRests[n]}")
+  return notes
