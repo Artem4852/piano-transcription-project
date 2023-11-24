@@ -1,7 +1,9 @@
 from common import getTrainingData, loadModel, padRms, np, os, convertNotes
 from addons.sheet import extractData
-import colorama, json, time
+import colorama, json, time, keyboard, pygetwindow, threading, re, subprocess
+from playsound import playsound
 from termcolor import colored
+from createMXL import allPitches
 
 colorama.init()
 
@@ -14,7 +16,7 @@ else:
   print(colored("[!] Please choose the language. The options are:\n1) English \n2) Ukrainian \n3) Russian: ", "cyan"))
   choice = input(colored("Your choice (1, 2 or 3): ", "green"))
   if choice not in ["1", "2", "3"]:
-    print(colored("\n[!!!] Invalid choice. Please try again", "orange"))
+    print(colored("\n[!!!] Invalid choice. Please try again", "red"))
     exit()
   lang = "eng" if choice == "1" else "ukr" if choice == "2" else "rus" if choice == "3" else "eng"
   settings["language"] = lang
@@ -54,7 +56,7 @@ phrases = {
     "rus": "\n[!] Предсказание..."
   },
   "predictionsdone": {
-    "eng": "\n[!] Predicting finished successfully in {elapsed} seconds}",
+    "eng": "\n[!] Predicting finished successfully in {elapsed} seconds",
     "ukr": "\n[!] Передбачення успішно завершено за {elapsed} секунд",
     "rus": "\n[!] Предсказание успешно завершено за {elapsed} секунд"
   },
@@ -62,6 +64,31 @@ phrases = {
     "eng": "\n[!] Predictions of the notes:",
     "ukr": "\n[!] Передбачення нот:",
     "rus": "\n[!] Предсказания нот:"
+  },
+  "editnotes": {
+    "eng": "[?] Do you want to edit the notes? (y/n): ",
+    "ukr": "[?] Ви хочете відредагувати ноти? (т/н): ",
+    "rus": "[?] Вы хотите отредактировать ноты? (д/н): "
+  },
+  "tohear": {
+    "eng": "[!] To hear what the note sounded in the audio press 'O'. To hear how note sounds currently press 'C'.",
+    "ukr": "[!] Щоб почути, як звучала нота в аудіо, натисніть 'O'. Щоб почути, як звучить нота зараз, натисніть 'C'.",
+    "rus": "[!] Чтобы услышать, как звучала нота в аудио, нажмите 'O'. Чтобы услышать, как звучит нота сейчас, нажмите 'C'."
+  },
+  "tonavigate": {
+    "eng": "[!] To move from one note to another use the left and right arrow keys. When moving, you would hear how the note you are moving to sounds currently.",
+    "ukr": "[!] Щоб перейти від однієї ноти до іншої, використовуйте клавіші зі стрілками вліво і вправо. Переміщуючись, ви будете чути, як зараз звучить нота, на яку ви переходите.",
+    "rus": "[!] Чтобы перейти от одной ноты к другой, используйте стрелки влево и вправо. Перемещаясь, вы будете слышать, как сейчас звучит нота, на которую вы переходите."
+  },
+  "toeditpith": {
+    "eng": "[!] To edit the pitch of the note use the up and down arrow keys.",
+    "ukr": "[!] Щоб змінити висоту ноти, використовуйте клавіші зі стрілками вгору і вниз.",
+    "rus": "[!] Чтобы изменить высоту ноты, используйте стрелки вверх и вниз."
+  },
+  "tofinish": {
+    "eng": "[!] To finish press 'esc'.",
+    "ukr": "[!] Щоб завершити натисніть 'esc'.",
+    "rus": "[!] Чтобы завершить нажмите 'esc'."
   },
   "exportformat": {
     "eng": "\n[!] Please chose the export format. The options are:\n1) mxl \n2) midi ",
@@ -72,6 +99,21 @@ phrases = {
     "eng": "[?] Your format choice (1 or 2): ",
     "ukr": "[?] Ваш вибір (1 або 2): ",
     "rus": "[?] Ваш выбор (1 или 2): "
+  },
+  "savedir": {
+    "eng": "\n[!] Please enter choose where to save the results. The options are:\n1) Directory of the audio file \n2) Results folder of this application \n3) Custom directory ",
+    "ukr": "\n[!] Будь ласка, виберіть, куди зберегти результати. Опції:\n1) Туди ж, де знаходиться аудіо файл \n2) Папка з результатами в цій програмі \n3) Інше місце ",
+    "rus": "\n[!] Пожалуйста, выберите, куда сохранить результаты. Опции:\n1) Туда же, где находится аудио файл \n2) Папка с результатами в этой программе \n3) Другое место "
+  },
+  "savedirchoice": {
+    "eng": "[?] Your choice (1, 2 or 3): ",
+    "ukr": "[?] Ваш вибір (1, 2 або 3): ",
+    "rus": "[?] Ваш выбор (1, 2 или 3): "
+  },
+  "savedircustom": {
+    "eng": "[?] Please enter the directory: ",
+    "ukr": "[?] Будь ласка, введіть шлях: ",
+    "rus": "[?] Пожалуйста, введите путь: "
   },
   "savingsheet": {
     "eng": "\n[!] Saving predictions as a sheet in the directory {directory}...",
@@ -103,7 +145,78 @@ phrases = {
   }
 }
 
+def playSound(path):
+  playsound(path)
+
+def printUI():
+  global newnotes, activenote
+  print(colored("[!] Notes:" if lang == "eng" else "Ноти:" if lang == "ukr" else "Ноты:", "cyan"))
+  print(", ".join([colored(note["visual"], "green") if i == activenote else note["visual"] for i, note in enumerate(notes)]))
+  print(colored(phrases["tohear"][lang], "cyan"))
+  print(colored(phrases["tonavigate"][lang], "cyan"))
+  print(colored(phrases["toeditpith"][lang], "cyan"))
+  print(colored(phrases["tofinish"][lang], "cyan"))
+
+def onKeyPress(event):
+  global activenote, newnotes
+  activeWindow = pygetwindow.getActiveWindow().title().strip()
+  if "Terminal" not in activeWindow and "Command Prompt" not in activeWindow and "Windows PowerShell" not in activeWindow and "Code" not in activeWindow: return
+  try: code, name = event.scan_code, event.name
+  except: code, name = None, None
+  if name == "esc":
+    keyboard.unhook_all()
+    return
+  os.system("clear")
+  if code == 8:
+    if "pitch" in newnotes[activenote]:
+      sound_thread = threading.Thread(target=playSound, args=(f"pitchLib/note{newnotes[activenote]['pitch'].replace('#', '_')}.wav",))
+      sound_thread.start()
+  if code == 31: 
+    if "pitch" in newnotes[activenote]:
+      restsBeforeNote = len([n for n in newnotes[:activenote+1] if not "pitch" in n])
+      sound_thread = threading.Thread(target=playSound, args=(f"notesTemp/note{activenote - restsBeforeNote}.wav",))
+      sound_thread.start()
+  elif code == 15: 
+    newnotes[activenote] = notes[activenote]
+  elif name == "left":
+    activenote = (activenote-1)%len(notes)
+    if "pitch" in newnotes[activenote]:
+      sound_thread = threading.Thread(target=playSound, args=(f"pitchLib/note{newnotes[activenote]['pitch'].replace('#', '_')}.wav",))
+      sound_thread.start()
+  elif name == "right":
+    activenote = (activenote+1)%len(notes)
+    if "pitch" in newnotes[activenote]:
+      sound_thread = threading.Thread(target=playSound, args=(f"pitchLib/note{newnotes[activenote]['pitch'].replace('#', '_')}.wav",))
+      sound_thread.start()
+  elif name == "up":
+    currentPitch = allPitches.index(newnotes[activenote]["pitch"])
+    currentPitch = (currentPitch+1)%len(allPitches)
+    pitch = allPitches[currentPitch]
+    newnotes[activenote]["pitch"] = pitch
+    newnotes[activenote]["visual"] = pitch + " " + newnotes[activenote]["visual"].split(" ")[1]
+    sound_thread = threading.Thread(target=playSound, args=(f"pitchLib/note{pitch.replace('#', '_')}.wav",))
+    sound_thread.start()
+  elif name == "down":
+    currentPitch = allPitches.index(newnotes[activenote]["pitch"])
+    currentPitch = (currentPitch-1)%len(allPitches)
+    pitch = allPitches[currentPitch]
+    newnotes[activenote]["pitch"] = pitch
+    newnotes[activenote]["visual"] = pitch + " " + newnotes[activenote]["visual"].split(" ")[1]
+    sound_thread = threading.Thread(target=playSound, args=(f"pitchLib/note{pitch.replace('#', '_')}.wav",))
+    sound_thread.start()
+  printUI()
+
+def editNotes():
+  global activenote, newnotes
+  os.system("clear")
+  newnotes = notes.copy()
+  activenote = 0
+  printUI()
+  keyboard.on_press(onKeyPress)
+  keyboard.wait('esc')
+
 def main():
+  global notes, newnotes
   print(colored(phrases["loadingmodels"][lang], "cyan"))
 
   pitchClf = loadModel("pitchClassifier")
@@ -121,10 +234,10 @@ def main():
   try:
     X, _, _, _ = getTrainingData(filename, training=False, predicting=True, lang=lang)
   except FileNotFoundError:
-    print(colored(phrases["errors"]["filenotfound"][lang], "orange"))
+    print(colored(phrases["errors"]["filenotfound"][lang], "red"))
     exit()
   except Exception as e:
-    print(colored(phrases["errors"]["other"][lang].format(error=e), "orange"))
+    print(colored(phrases["errors"]["other"][lang].format(error=e), "red"))
     exit()
 
   pitchX = [([note["pitch"], np.max(note["harmonic"]), np.mean(note["harmonic"]), np.max(note["spectrogram"]), np.mean(note["spectrogram"])]) for note in X]
@@ -144,21 +257,36 @@ def main():
 
   print(colored(phrases["printingpredictions"][lang], "cyan"))
   notes = convertNotes(predictionsPitch, predictionsLength/4, predictionsRests/4)
-  print(notes)
+  print([note["visual"] for note in notes])
+
+  choiceEditNotes = input(colored(phrases["editnotes"][lang], "green")) in ["y", "Y", "yes", "Yes", "д", "Д", "т", "Т", "да", "Да", "так", "Так"]
+  newnotes = None
+  if choiceEditNotes:
+    editNotes()
 
   print(colored(phrases["exportformat"][lang], "cyan"))
   exportFormat = input(colored(phrases["exportformatchoice"][lang], "green"))
+  try: exportFormat = re.findall(r'\d', exportFormat)[-1]
+  except: exportFormat = "1"
   if exportFormat not in ["1", "2"]: exportFormat = "1"
 
-  print(exportFormat)
+  print(colored(phrases["savedir"][lang], "cyan"))
+  choiceSaveDir = input(colored(phrases["savedirchoice"][lang], "green"))
+  if choiceSaveDir not in ["1", "2", "3"]: choiceSaveDir = "1"
+  if choiceSaveDir == "1": directory = "/".join(filename.split("/")[:-1])
+  elif choiceSaveDir == "2": directory = "results"
+  else: directory = input(colored(phrases["savedircustom"][lang], "green"))
 
-  print(colored(phrases["savingsheet"][lang].format(directory="results"), "cyan"))
-  os.makedirs("results", exist_ok=True)
-  extractData(predictionsPitch, predictionsLength, predictionsRests, f"results/{filename.split('/')[-1]}", exportFormat=int(exportFormat))
+  print(colored(phrases["savingsheet"][lang].format(directory=directory), "cyan"))
+  os.makedirs(directory, exist_ok=True)
+  extractData(predictionsPitch, predictionsLength, predictionsRests, f"{directory}/{filename.split('/')[-1]}", exportFormat=int(exportFormat), newnotes=newnotes)
+  # extractData(predictionsPitch, predictionsLength, predictionsRests, f"results/{filename.split('/')[-1]}", exportFormat=int(exportFormat))
   print(colored(phrases["sheetsaved"][lang], "cyan"))
+
+  os.system("rm -rf notesTemp")
 
 if __name__ == "__main__":
   try: main()
   except KeyboardInterrupt: 
-    print(colored(phrases["errors"]["keyboardinterupt"][lang], "orange"))
+    print(colored(phrases["errors"]["keyboardinterupt"][lang], "red"))
     exit()

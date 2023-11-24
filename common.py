@@ -110,6 +110,6 @@ def convertNotes(predictionsPitch, predictionsLength, predictionsRests):
     pitch = f"{key['pitch'][int(str(pred)[1])]}{'#' if int(str(pred)[2]) else ''}{str(pred)[0]}"
     length = predictionsLength[n]-predictionsRests[n]
     if length <= 0: length = predictionsLength[n]
-    notes.append(f"{pitch} {length}")
-    if predictionsRests[n] != 0 and predictionsLength[n]-predictionsRests[n] > 0: notes.append(f"Rest {predictionsRests[n]}")
+    notes.append({"visual": f"{pitch} {length}", "pitch": pitch, "length": length})
+    if predictionsRests[n] != 0 and predictionsLength[n]-predictionsRests[n] > 0: notes.append({"visual": f"Rest {predictionsRests[n]}", "length": predictionsRests[n]})
   return notes
