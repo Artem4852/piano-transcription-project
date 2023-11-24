@@ -1,0 +1,13 @@
+librosa
+numpy
+pandas
+pydub 
+termcolor
+music21
+joblib
+scikit-learn
+keyboard
+pygetwindow
+colorama
+keyboard
+playsound

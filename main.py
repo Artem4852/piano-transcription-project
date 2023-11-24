@@ -1,6 +1,6 @@
 from common import getTrainingData, loadModel, padRms, np, os, convertNotes
 from addons.sheet import extractData
-import colorama, json, time, keyboard, pygetwindow, threading, re, subprocess
+import colorama, json, time, keyboard, pygetwindow, threading, re
 from playsound import playsound
 from termcolor import colored
 from createMXL import allPitches
@@ -56,9 +56,9 @@ phrases = {
     "rus": "\n[!] Предсказание..."
   },
   "predictionsdone": {
-    "eng": "\n[!] Predicting finished successfully in {elapsed} seconds",
-    "ukr": "\n[!] Передбачення успішно завершено за {elapsed} секунд",
-    "rus": "\n[!] Предсказание успешно завершено за {elapsed} секунд"
+    "eng": "[!] Predicting finished successfully in {elapsed} seconds",
+    "ukr": "[!] Передбачення успішно завершено за {elapsed} секунд",
+    "rus": "[!] Предсказание успешно завершено за {elapsed} секунд"
   },
   "printingpredictions": {
     "eng": "\n[!] Predictions of the notes:",

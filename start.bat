@@ -1,0 +1,1 @@
+runas /user:Administrator "python3 main.py"
