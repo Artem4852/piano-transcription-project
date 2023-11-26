@@ -1,6 +1,6 @@
 from common import getTrainingData, loadModel, padRms, np, os, convertNotes
 from addons.sheet import extractData
-import colorama, json, time, keyboard, pygetwindow, threading, re
+import colorama, json, time, keyboard, threading, re
 from playsound import playsound
 from termcolor import colored
 from createMXL import allPitches
@@ -159,8 +159,8 @@ def printUI():
 
 def onKeyPress(event):
   global activenote, newnotes
-  activeWindow = pygetwindow.getActiveWindow().title().strip()
-  if "Terminal" not in activeWindow and "Command Prompt" not in activeWindow and "Windows PowerShell" not in activeWindow and "Code" not in activeWindow: return
+  # activeWindow = pygetwindow.getActiveWindow().title().strip()
+  # if "Terminal" not in activeWindow and "Command Prompt" not in activeWindow and "Windows PowerShell" not in activeWindow and "Code" not in activeWindow: return
   try: code, name = event.scan_code, event.name
   except: code, name = None, None
   if name == "esc":
