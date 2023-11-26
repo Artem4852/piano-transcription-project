@@ -4,7 +4,7 @@ This application can be used to make the process of transcription of an audio fi
 ---
 
 # How to install the application
-First, [download the file](https://raw.githubusercontent.com/Artem4852/piano-transcription-project/6861fb13cf05338acbff3075e385cbb5fd5ca9be/applicationCompressed.zip) and unzip it.
+First, [download the file](https://raw.githubusercontent.com/Artem4852/piano-transcription-project/main/applicationCompressed.zip) and unzip it.
 
 Then, on Windows, open the powershell and navigate to the folder where you unzipped the file. Then, run the following command:
 ```batch
