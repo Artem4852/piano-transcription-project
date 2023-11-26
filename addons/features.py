@@ -1,4 +1,4 @@
-import librosa, os
+import librosa, os, shutil
 import numpy as np
 import pandas as pd
 from pydub import AudioSegment
@@ -8,7 +8,7 @@ MARGINR = 25
 MARGINL = 35
 
 def separateNotes(filename, tempFolder):
-  os.system(f"rm -rf {tempFolder}")
+  shutil.rmtree(tempFolder, ignore_errors=True)
   os.makedirs(tempFolder)
 
   y, sr = librosa.load(filename)
