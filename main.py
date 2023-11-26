@@ -219,9 +219,9 @@ def main():
   global notes, newnotes
   print(colored(phrases["loadingmodels"][lang], "cyan"))
 
-  pitchClf = loadModel("pitchClassifier")
   lengthClf = loadModel("lengthClassifierNewNew")
   restsClf = loadModel("restsClassifierAlt")
+  pitchClf = loadModel("pitchClassifier")
 
   print(colored(phrases['modelsloaded'][lang], "cyan"))
 

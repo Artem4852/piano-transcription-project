@@ -4,8 +4,8 @@ trainingFiles = getTrainingFiles(False, True, False, True)
 trainingFiles.sort()
 
 X, y = [], []
-for _file in trainingFiles:
-  print(f"Processing {_file}")
+for n, _file in enumerate(trainingFiles):
+  print(f"Processing {_file} - {n+1}/{len(trainingFiles)}")
   localX, localY, _, _ = getTrainingData(_file, tempFolder="pitchTemp")
   y += localY
   for note in localX:
