@@ -1,6 +1,6 @@
 from common import getTrainingData, loadModel, padRms, np, os, convertNotes
 from addons.sheet import extractData
-import colorama, json, time, keyboard, threading, re, platform
+import colorama, json, time, keyboard, threading, re, platform, shutil
 from playsound import playsound
 from termcolor import colored
 from createMXL import allPitches
@@ -286,7 +286,7 @@ def main():
   # extractData(predictionsPitch, predictionsLength, predictionsRests, f"results/{filename.split('/')[-1]}", exportFormat=int(exportFormat))
   print(colored(phrases["sheetsaved"][lang], "cyan"))
 
-  os.system("rm -rf notesTemp")
+  shutil.rmtree("notesTemp")
 
 if __name__ == "__main__":
   try: main()
