@@ -1,11 +1,13 @@
 from common import getTrainingData, loadModel, padRms, np, os, convertNotes
 from addons.sheet import extractData
-import colorama, json, time, keyboard, threading, re
+import colorama, json, time, keyboard, threading, re, platform
 from playsound import playsound
 from termcolor import colored
 from createMXL import allPitches
 
 colorama.init()
+
+windows = platform.system() == "Windows"
 
 if "usersettings.json" in os.listdir():
   with open("usersettings.json", "r") as f:
@@ -273,13 +275,14 @@ def main():
   print(colored(phrases["savedir"][lang], "cyan"))
   choiceSaveDir = input(colored(phrases["savedirchoice"][lang], "green"))
   if choiceSaveDir not in ["1", "2", "3"]: choiceSaveDir = "1"
-  if choiceSaveDir == "1": directory = "/".join(filename.split("/")[:-1])
+  if choiceSaveDir == "1": directory = "/".join(filename.split("/")[:-1]) if "/" in filename else "\\".join(filename.split("\\")[:-1])
   elif choiceSaveDir == "2": directory = "results"
   else: directory = input(colored(phrases["savedircustom"][lang], "green"))
 
   print(colored(phrases["savingsheet"][lang].format(directory=directory), "cyan"))
   os.makedirs(directory, exist_ok=True)
-  extractData(predictionsPitch, predictionsLength, predictionsRests, f"{directory}/{filename.split('/')[-1]}", exportFormat=int(exportFormat), newnotes=newnotes)
+  filename = filename.split("/" if not windows else "\\")[-1]
+  extractData(predictionsPitch, predictionsLength, predictionsRests, f"{directory}/{filename}", exportFormat=int(exportFormat), newnotes=newnotes)
   # extractData(predictionsPitch, predictionsLength, predictionsRests, f"results/{filename.split('/')[-1]}", exportFormat=int(exportFormat))
   print(colored(phrases["sheetsaved"][lang], "cyan"))
 
