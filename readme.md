@@ -16,6 +16,8 @@ On Mac and Linux, open the terminal and navigate to the folder where you unzippe
 pip3 install -r requirements.txt && chmod +x ./start.sh
 ```
 
+The application also requires you to have [ffmpeg](https://ffmpeg.org/download.html) installed. Please use the tutorials to install it if you haven't already.
+
 ---
 
 # Usage
@@ -26,9 +28,14 @@ On Windows, open the powershell and navigate to the folder where you unzipped th
 python3 main.py
 ```
 
-On Mac and Linux, open the terminal and navigate to the folder where you unzipped the file. Then, run the following command:
+On Mac, open the terminal and navigate to the folder where you unzipped the file. Then, run the following command:
 ```zsh
 sudo ./start.sh
+```
+
+On Linux, open the terminal and navigate to the folder where you unzipped the file. Then, run the following command:
+```zsh
+sudo -E python3 main.py
 ```
 
 ## Choosing the language
