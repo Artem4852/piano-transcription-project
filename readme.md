@@ -53,5 +53,10 @@ In the end, you can export the transcription as an mxl or midi file. You would f
 
 ---
 
+# Feedback
+Your feedback is very important to me as a developer. Please fill in [this form](https://docs.google.com/forms/d/e/1FAIpQLSdifFvYqw8eC-sjTLm1EQ9tVVLVnZuZS1HtyZ4i62uIumkbdw/viewform) to give me feedback about the application. It would only take a minute of your time.
+
+---
+
 # Errors
 If you encounter any errors, please [create an issue](https://github.com/Artem4852/piano-transcription-project/issues/new). Please include the steps to reproduce the error, the error message, your operating system, and the version of python you are using.
