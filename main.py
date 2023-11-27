@@ -165,20 +165,20 @@ def onKeyPress(event):
   # if "Terminal" not in activeWindow and "Command Prompt" not in activeWindow and "Windows PowerShell" not in activeWindow and "Code" not in activeWindow: return
   try: code, name = event.scan_code, event.name
   except: code, name = None, None
-  if name == "esc":
+  if name == "esc" or code == 53:
     keyboard.unhook_all()
     return
-  os.system("clear")
-  if code == 8:
+  os.system("clear" if not windows else "cls")
+  if code == 8 or name == "c":
     if "pitch" in newnotes[activenote]:
       sound_thread = threading.Thread(target=playSound, args=(f"pitchLib/note{newnotes[activenote]['pitch'].replace('#', '_')}.wav",))
       sound_thread.start()
-  if code == 31: 
+  if code == 31 or name == "o": 
     if "pitch" in newnotes[activenote]:
       restsBeforeNote = len([n for n in newnotes[:activenote+1] if not "pitch" in n])
       sound_thread = threading.Thread(target=playSound, args=(f"notesTemp/note{activenote - restsBeforeNote}.wav",))
       sound_thread.start()
-  elif code == 15: 
+  elif code == 15 or name == "r": 
     newnotes[activenote] = notes[activenote]
   elif name == "left":
     activenote = (activenote-1)%len(notes)
@@ -191,6 +191,7 @@ def onKeyPress(event):
       sound_thread = threading.Thread(target=playSound, args=(f"pitchLib/note{newnotes[activenote]['pitch'].replace('#', '_')}.wav",))
       sound_thread.start()
   elif name == "up":
+    if not "pitch" in newnotes[activenote]: printUI(); return
     currentPitch = allPitches.index(newnotes[activenote]["pitch"])
     currentPitch = (currentPitch+1)%len(allPitches)
     pitch = allPitches[currentPitch]
@@ -199,6 +200,7 @@ def onKeyPress(event):
     sound_thread = threading.Thread(target=playSound, args=(f"pitchLib/note{pitch.replace('#', '_')}.wav",))
     sound_thread.start()
   elif name == "down":
+    if not "pitch" in newnotes[activenote]: printUI(); return
     currentPitch = allPitches.index(newnotes[activenote]["pitch"])
     currentPitch = (currentPitch-1)%len(allPitches)
     pitch = allPitches[currentPitch]
@@ -210,12 +212,13 @@ def onKeyPress(event):
 
 def editNotes():
   global activenote, newnotes
-  os.system("clear")
+  os.system("clear" if not windows else "cls")
   newnotes = notes.copy()
   activenote = 0
   printUI()
   keyboard.on_press(onKeyPress)
-  keyboard.wait('esc')
+  try: keyboard.wait('esc')
+  except ValueError: pass
 
 def main():
   global notes, newnotes
@@ -286,7 +289,7 @@ def main():
   # extractData(predictionsPitch, predictionsLength, predictionsRests, f"results/{filename.split('/')[-1]}", exportFormat=int(exportFormat))
   print(colored(phrases["sheetsaved"][lang], "cyan"))
 
-  shutil.rmtree("notesTemp")
+  # shutil.rmtree("notesTemp")
 
 if __name__ == "__main__":
   try: main()
