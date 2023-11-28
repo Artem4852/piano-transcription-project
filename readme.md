@@ -3,6 +3,12 @@ This application can be used to make the process of transcription of an audio fi
 
 ---
 
+# Important to note
+The application predicts the notes "one at a time", so no chords and only one (treble) clef kind of music could be predicted.
+Since the algorithms were trained using audio data from MuseScore 4, the application would work best with audio files from that app. It might not work completely well with audio files from other apps, because of slight variations in pitch and volume.
+
+---
+
 # How to install the application
 First, [download the file](https://raw.githubusercontent.com/Artem4852/piano-transcription-project/main/pianoTranscriptionProject.zip) and unzip it.
 
