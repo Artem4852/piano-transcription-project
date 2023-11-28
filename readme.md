@@ -24,7 +24,7 @@ On Mac and Linux, open the terminal and navigate to the folder where you unzippe
 pip3 install -r requirements.txt && chmod +x ./start.sh
 ```
 
-The application also requires you to have [ffmpeg](https://ffmpeg.org/download.html) installed. Please use the tutorials to install it if you haven't already.
+The application also requires you to have [ffmpeg](https://ffmpeg.org/download.html) installed. Please use the tutorials to install it if you haven't already. For Windows I suggest to use [this tutorial](https://youtu.be/DMEP82yrs5g?si=Tn2Rk5rIMSNCDFHb) and for Mac [this one](https://youtu.be/nmrjRqEIgGc?si=pg4p0uI-XgMHghGp).
 
 ---
 
